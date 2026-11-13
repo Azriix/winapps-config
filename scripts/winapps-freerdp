@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# sdl-freerdp en Wayland natif + correctifs du presse-papiers (FREERDP_COMMAND dans winapps.conf).
+# Un correctif absent est ignoré.
+
+dir="${BASH_SOURCE[0]%/*}"
+
+[[ -n "${WAYLAND_DISPLAY:-}" ]] && export SDL_VIDEODRIVER=wayland
+
+# Passerelle d'images : seulement pour une vraie connexion.
+if [[ " $* " == *" /v:"* && -x "$dir/winapps-clipboard-bridge.py" ]]; then
+    setsid --fork "$dir/winapps-clipboard-bridge.py" </dev/null &>/dev/null
+fi
+
+if [[ -r "$dir/freerdp-clipboard-fix.so" ]]; then
+    export LD_PRELOAD="$dir/freerdp-clipboard-fix.so${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
+
+# -grab-keyboard : pas de demande GNOME « autoriser les raccourcis ».
+exec sdl-freerdp -grab-keyboard "$@"

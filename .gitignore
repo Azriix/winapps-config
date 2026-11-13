@@ -1,0 +1,6 @@
+# Sécurité : rien de propre au poste ne doit entrer dans le dépôt.
+.env
+.password
+*.so
+*.bak*
+__pycache__/

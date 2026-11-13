@@ -1,0 +1,39 @@
+# VM Windows pour WinApps (https://github.com/dockur/windows). Variables : ~/.config/winapps/.env.
+# Seuls RAM_SIZE et CPU_CORES ont encore un effet une fois Windows installé.
+
+name: "winapps"
+volumes:
+  data:
+services:
+  windows:
+    image: ghcr.io/dockur/windows:latest
+    container_name: WinApps
+    environment:
+      VERSION: "${WIN_VERSION:-11l}" # Édition téléchargée quand aucune ISO n'est montée.
+      RAM_SIZE: "${WIN_RAM_SIZE:-4G}"
+      CPU_CORES: "${WIN_CPU_CORES:-4}"
+      DISK_SIZE: "${WIN_DISK_SIZE:-64G}"
+      USERNAME: "${WIN_USERNAME:-${USER}}"
+      PASSWORD: "${WIN_PASSWORD:-}"
+      HOME: "${HOME}"
+      LANGUAGE: "${WIN_LANGUAGE:-French}"
+      REGION: "${WIN_REGION:-fr-FR}"
+      KEYBOARD: "${WIN_KEYBOARD:-fr-FR}"
+    ports:
+      - "127.0.0.1:8006:8006" # Écran de la VM : http://127.0.0.1:8006
+      - "127.0.0.1:3389:3389/tcp"
+      - "127.0.0.1:3389:3389/udp"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW # Sans lui, le réseau de la VM casse la redirection du port RDP.
+    stop_grace_period: 120s
+    restart: on-failure
+    volumes:
+      - data:/storage
+      - ${HOME}/.local/bin/winapps-src/oem:/oem # Scripts WinApps lancés en fin d'installation.
+      # Ligne retirée par install.sh si WIN_ISO est vide ou introuvable.
+      - ${WIN_ISO:?WIN_ISO manquant - deployez ce fichier avec install.sh}:/boot.iso
+      - ${HOME}/Documents:/shared # \\host.lan\Data dans Windows.
+    devices:
+      - /dev/kvm
+      - /dev/net/tun

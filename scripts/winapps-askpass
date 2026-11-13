@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Affiche le mot de passe Windows lu dans .env (RDP_ASKPASS dans winapps.conf).
+sed -n "s/^WIN_PASSWORD='\(.*\)'$/\1/p" "${BASH_SOURCE[0]%/*}/.env"
